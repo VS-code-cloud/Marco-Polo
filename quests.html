@@ -62,7 +62,6 @@
         const { places } = await Place.searchNearby(request);
 
         if (places.length) {
-          console.log(places);
 
           const { LatLngBounds } = await google.maps.importLibrary("core");
           const bounds = new LatLngBounds();
@@ -73,11 +72,9 @@
 
             bounds.extend(place.location);
             locs.push(place.displayName);
-            console.log("places: "+JSON.stringify(place));
           });
           return locs;
         } else {
-          console.log("No results");
         }
       }
   async function generateSidequests(places) {
@@ -144,7 +141,6 @@
           });
 
           const data = await response.json();
-          console.log("Gemini raw response:", data);
 
           if (!data || !data.candidates || data.candidates.length === 0) {
               throw new Error(`Gemini API returned no content: ${data.error ?? 'Unknown error'}`);
@@ -171,20 +167,15 @@
     }
     let places = [];
     async function getLocations(position) {
-      console.log(position);
       let loc= {latitude: position.coords.latitude, longitude: position.coords.longitude};
-      console.log('loc: '+loc.latitude+", lat: "+loc.longitude);
       locs = await getNearbyPlaces(loc);
-      console.log('locs: '+locs);
       let preformatQuests = await generateSidequests(locs);
-      console.log('quests: '+preformatQuests);
         if (!preformatQuests) {
           document.getElementById("questContainer").innerText = "No quests found for this city.";
           return;
         }
         preformatQuests.split("*START NEW QUEST*").forEach(q => {
           linedQ = q.split(":");
-          console.log("linedq: "+linedQ[5]);
           quests["side"].push({name: linedQ[5], description: q, steps: null})
         })
         const stored = localStorage.getItem("completed_" + city);
@@ -200,7 +191,6 @@
       window.location.href = "index.html";
     }
     const email = localStorage.getItem("email");
-    console.log('email: '+email);
     if (!email) {
       window.location.href = "login.html";
     }
@@ -319,7 +309,6 @@
         : "";
 
       const div = document.createElement("div");
-      console.log(q.name);
       div.innerHTML = `
         <p><strong>${q.name}</strong></p>
         <button onclick="completeQuest('${index}')" ${steps.length ? "disabled" : ""}>Complete</button>
