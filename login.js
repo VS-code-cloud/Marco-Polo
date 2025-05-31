@@ -1,5 +1,40 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-auth.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore.js";
+
+var uuidv4 = new function() {
+	function generateInteger(limit) {
+	   var value = limit * Math.random();
+	   return value | 0;
+	}
+	function generateXes(count) {
+		var result = '';
+		for(var i = 0; i < count; ++i) {
+            var integer = generateInteger(16);
+			result += integer.toString(16);
+		}
+		return result;
+	}
+	function generateVariant() {
+		var integer = generateInteger(16);
+		var variant =  (integer & 0x3) | 0x8;
+		return variant.toString(16);
+	}
+    // UUID v4
+    //
+    //   varsion: M=4 
+    //   variant: N
+    //   pattern: xxxxxxxx-xxxx-Mxxx-Nxxx-xxxxxxxxxxxx
+    //
+	this.generate = function() {
+  	    var result = generateXes(8)
+  	         + '-' + generateXes(4)
+  	         + '-' + '4' + generateXes(3)
+  	         + '-' + generateVariant() + generateXes(3)
+  	         + '-' + generateXes(12)
+  	    return result;
+	};
+};
 
 const firebaseConfig = {
     apiKey: "AIzaSyDQRutWjYwLJAARJP9qWLkYlCGU7F-bThs",
@@ -14,6 +49,8 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
+
 
 function signIn() {
     const email = document.getElementById("email").value;
@@ -37,7 +74,16 @@ function signUp() {
     const password = document.getElementById("password").value;
 
     createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
+        .then(async (userCredential) => {
+            try {
+              const docRef = await addDoc(collection(db, "users"), {
+                email: userCredential.user.email,
+                quests: []
+              });
+              console.log("Document written with ID: ", docRef.id);
+            } catch (e) {
+              console.error("Error adding document: ", e);
+            }
             console.log("Signed up as:", userCredential.user.email);
             alertify.success("Sign up complete!");
             localStorage.setItem("email", userCredential.user.email);
