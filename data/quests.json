@@ -1,0 +1,159 @@
+{
+  "Princeton": {
+    "main": [
+      {
+        "name": "Ivy Initiation",
+        "description": "Complete these tasks across campus to earn your Tiger stripes.",
+        "steps": [
+          "Visit Richardson Auditorium.",
+          "Snap a photo with a tiger statue.",
+          "Visit the Princeton Football Stadium."
+        ]
+      },
+      {
+        "name": "Revolutionary Remembrance",
+        "description": "Honor Princeton’s place in American history.",
+        "steps": [
+          "Visit the Princeton Battlefield State Park.",
+          "Find the Mercer Oak Monument.",
+          "Read the historical plaque near the battlefield cannon."
+        ]
+      },
+      {
+        "name": "Nassau Navigator",
+        "description": "Explore the most iconic buildings on campus.",
+        "steps": [
+          "Visit Nassau Hall.",
+          "Walk past East Pyne Hall.",
+          "Take a look at Blair Arch."
+        ]
+      }
+    ],
+    "side": [
+      {
+        "name": "Caffeinated Campus Life",
+        "description": "Get a drink from Small World Coffee.",
+        "steps": null
+      },
+      {
+        "name": "Boba Beast",
+        "description": "College towns are known for their boba. Princeton is no exception!",
+        "steps": [
+          "Get a drink from Kung Fu Tea.",
+          "Get a drink from MTea.",
+          "Get a drink from Junbi.",
+          "Get a drink from Fresh O Tea."
+        ]
+      },
+      {
+        "name": "Colonial Main Street",
+        "description": "Walk along Nassau Street and soak in the colonial charm.",
+        "steps": null
+      },
+      {
+        "name": "Quiet by the Quarry",
+        "description": "Sit by the fountain at Palmer Square and enjoy the atmosphere.",
+        "steps": null
+      },
+      {
+        "name": "Bridge Over Calm Waters",
+        "description": "Walk across the bridge near Carnegie Lake.",
+        "steps": null
+      },
+      {
+        "name": "Art Outside the Frame",
+        "description": "Explore the outdoor sculptures near the Princeton University Art Museum.",
+        "steps": null
+      },
+      {
+        "name": "Banners of Black and Orange",
+        "description": "Spot an orange-and-black Princeton banner hanging in town.",
+        "steps": null
+      },
+      {
+        "name": "Pages and Patrons",
+        "description": "Snap a photo of the Princeton Public Library on Witherspoon Street.",
+        "steps": null
+      },
+      {
+        "name": "Tigers on Guard",
+        "description": "Find a tiger statue around Princeton and take a selfie with it.",
+        "steps": null
+      },
+      {
+        "name": "Snack Stop",
+        "description": "Buy a snack from a local deli or café.",
+        "steps": null
+      }
+    ]
+  },
+
+  "New York": {
+    "main": [
+      {
+        "name": "Empire Essentials",
+        "description": "See New York from its most iconic places.",
+        "steps": [
+          "Visit the Empire State Building.",
+          "Walk through Times Square.",
+          "Ride the NYC subway."
+        ]
+      },
+      {
+        "name": "History in the Heights",
+        "description": "Explore NYC's cultural and revolutionary past.",
+        "steps": [
+          "Walk past Alexander Hamilton’s grave at Trinity Church.",
+          "Visit the National Museum of the American Indian.",
+          "Stand at Battery Park and look toward the Statue of Liberty."
+        ]
+      },
+      {
+        "name": "Park Pioneer",
+        "description": "Reconnect with nature in the big city.",
+        "steps": [
+          "Enter Central Park from the south entrance.",
+          "Find the Bethesda Fountain.",
+          "Relax on a bench near Sheep Meadow."
+        ]
+      }
+    ],
+    "side": [
+      {
+        "name": "Pizza Pursuit",
+        "description": "Get a classic slice of New York-style pizza.",
+        "steps": null
+      },
+      {
+        "name": "Rooftop Recharge",
+        "description": "Visit a rooftop location with a skyline view.",
+        "steps": null
+      },
+      {
+        "name": "Bridge Bound",
+        "description": "Walk across the Brooklyn Bridge.",
+        "steps": null
+      },
+      {
+        "name": "Library Lookout",
+        "description": "Find the stone lions in front of the NY Public Library.",
+        "steps": null
+      },
+      {
+        "name": "Museum Hopper",
+        "description": "Take a photo outside the Metropolitan Museum of Art.",
+        "steps": null
+      },
+      {
+        "name": "Subway Selfie",
+        "description": "Snap a selfie while waiting for the train.",
+        "steps": null
+      },
+      {
+        "name": "Skyline Sketch",
+        "description": "Draw or sketch any part of the NYC skyline.",
+        "steps": null
+      }
+    ]
+  }
+}
