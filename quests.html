@@ -5,14 +5,14 @@
   <title>Your Quests – MarcoPolo</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
+<body>  
   <h1>Your Quests - MarcoPolo</h1>
   <p id="cityName"></p>
 
   <label for="citySwitch">🌎 Switch City:</label>
   <select id="citySwitch" onchange="switchToCity(this.value)"></select>
 
-  <a href="spin.html">🎡 Spin the Wheel</a>
+  <a href="spin.html"><br/>🎡 Spin the Wheel</a>
 
 
   <div id="questContainer"></div>
@@ -27,7 +27,7 @@
 
   <!-- Reset Button -->
   <button onclick="resetXP()">Reset XP</button>
-
+  <button onclick="signOut()">Sign Out</button>
   <script>
     let quests = {};
     let completed = [];
@@ -36,7 +36,11 @@
     if (!city) {
       window.location.href = "index.html";
     }
-
+    const email = localStorage.getItem("email");
+    console.log('email: '+email);
+    if (!email) {
+      window.location.href = "login.html";
+    }
     document.getElementById("cityName").innerText = "City: " + city;
 
     // Load visited cities into dropdown
@@ -232,7 +236,10 @@
       document.getElementById("level").innerText = level;
       document.getElementById("xpBar").style.width = `${(progress / 200) * 100}%`;
     }
-
+    function signOut() {
+      localStorage.clear("email");
+      window.location.reload();
+    }
     function resetXP() {
       localStorage.setItem("xp", 0);
       localStorage.setItem("completed_" + city, "[]");
