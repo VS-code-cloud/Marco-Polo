@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>🎡 Spin the Wheel – MarcoPolo</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
+
+    canvas {
+      border: 10px solid #333;
+      border-radius: 50%;
+      margin-top: 20px;
+    }
+
+    #pointer {
+      position: absolute;
+      top: 160px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 30px;
+      z-index: 1;
+    }
+
+    #result {
+      margin-top: 30px;
+      font-size: 1.2em;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 25px;
+      font-size: 1.2em;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎡 Spin the Wheel!</h1>
+  <p>One spin per city visit – maybe you'll win a ✈️ free ticket!</p>
+
+  <div id="pointer">🔻</div>
+  <canvas id="wheel" width="400" height="400"></canvas><br>
+  <button onclick="spin()">Spin!</button>
+
+  <div id="result"></div>
+
+  <script>
+    const rewards = [
+      "🎁 +100 XP",
+      "🎟️ Rare Badge",
+      "💬 You’re doing great!",
+      "🧃 +1 Energy Drink",
+      "✈️ Free Plane Ticket",
+      "😅 Better luck next time",
+      "🎁 +50 XP",
+      "📸 Camera Sticker"
+    ];
+
+    const canvas = document.getElementById("wheel");
+    const ctx = canvas.getContext("2d");
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const total = rewards.length;
+    const arc = (2 * Math.PI) / total;
+    let currentAngle = 0;
+    let spinning = false;
+
+    const colors = ["#f39c12", "#2980b9"];
+
+    function drawWheel() {
+      for (let i = 0; i < total; i++) {
+        const startAngle = arc * i + currentAngle;
+        const endAngle = startAngle + arc;
+
+        // Segment
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, 180, startAngle, endAngle);
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.fill();
+        ctx.stroke();
+
+        // Text
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate(startAngle + arc / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "white";
+        ctx.font = "16px sans-serif";
+        ctx.fillText(rewards[i], 160, 10);
+        ctx.restore();
+      }
+    }
+
+    function spin() {
+      if (spinning) return;
+      spinning = true;
+
+      const spins = Math.floor(Math.random() * 4 + 4); // 4–7 spins
+      const finalAngle = Math.random() * 2 * Math.PI;
+      const totalRotation = spins * 2 * Math.PI + finalAngle;
+      const duration = 3000; // 3 seconds
+      const start = performance.now();
+
+      function animate(time) {
+        const elapsed = time - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const ease = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+        currentAngle = totalRotation * ease;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawWheel();
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          showResult();
+          spinning = false;
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    function showResult() {
+      const degrees = (currentAngle * 180 / Math.PI) % 360;
+      const offsetFromTop = (degrees + 90) % 360; // 90° = pointer at top
+      const index = Math.floor((360 - offsetFromTop) / (360 / total)) % total;
+      const prize = rewards[index];
+
+      document.getElementById("result").innerHTML = ` ${prize}</strong>`;
+
+      if (prize.includes("XP")) {
+        const amount = parseInt(prize.match(/\d+/)[0]);
+        let xp = parseInt(localStorage.getItem("xp") || "0");
+        xp += amount;
+        localStorage.setItem("xp", xp);
+      }
+    }
+
+    drawWheel();
+  </script>
+</body>
+</html>
