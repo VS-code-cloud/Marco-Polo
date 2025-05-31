@@ -6,6 +6,8 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>  
+  <img src="images/marcopolo-logo.png" alt="MarcoPolo Logo" style="width: 200px; margin-bottom: 10px;" />
+
   <h1>Your Quests - MarcoPolo</h1>
   <p id="cityName"></p>
 
@@ -28,8 +30,169 @@
   <!-- Reset Button -->
   <button onclick="resetXP()">Reset XP</button>
   <button onclick="signOut()">Sign Out</button>
+  <script loading="async"
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDHGausYXQKBnImesjovCELmkABJI-ySvc&callback=initMap&v=weekly"
+      defer
+    ></script>
   <script>
-    let quests = {};
+      async function getNearbyPlaces(position) {
+        //@ts-ignore
+        const { Place, SearchNearbyRankPreference } = await google.maps.importLibrary(
+          "places",
+        );
+        const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+        // Restrict within the map viewport.
+        let center = new google.maps.LatLng(position.latitude, position.longitude);
+        const request = {
+          // required parameters
+          fields: ["displayName", "location", "businessStatus"],
+          locationRestriction: {
+            center: center,
+            radius: 10000,
+            type: "point_of_interest"
+          },
+          // optional parameters
+          /*includedPrimaryTypes: ["point_of_interest"],*/
+          maxResultCount: 15,
+          rankPreference: SearchNearbyRankPreference.POPULARITY,
+          language: "en-US",
+          region: "us",
+        };
+        //@ts-ignore
+        const { places } = await Place.searchNearby(request);
+
+        if (places.length) {
+          console.log(places);
+
+          const { LatLngBounds } = await google.maps.importLibrary("core");
+          const bounds = new LatLngBounds();
+
+          // Loop through and get all the results.
+          let locs = []
+          places.forEach((place) => {
+
+            bounds.extend(place.location);
+            locs.push(place.displayName);
+            console.log("places: "+JSON.stringify(place));
+          });
+          return locs;
+        } else {
+          console.log("No results");
+        }
+      }
+  async function generateSidequests(places) {
+      const geminiApiKey = "AIzaSyCb46HFdBzoto-E4LDlF2PoK6fWHM7B75Q";
+      const prompt = `
+  I'm building an app that generates fun little sidequests based on real-world locations.
+  Given these nearby places, pick five random ones and:
+  ${places.join(', ')}
+
+  You are an RPG quest designer creating themed exploration missions for a real-world location for an app that gamifies exploring locations and there are "main quests" which are main locations like (statue of liberty, central park, the met), and then "side quests" (buy a taco from los tacos, take a picture next to a certain mural, get a coffee from this coffee shop). Here are some examples:
+
+  Quest: St. Patrick's Cathedral: 
+      Location: "St. Patrick’s Cathedral"
+      Objective: "Step inside and observe the stained glass."
+      Title: "Sanctum of Stone and Sky"
+      Lore: "A holy refuge where even the concrete heart of the city finds peace."
+
+  Quest: NYPL Bryant Park:
+    Location: "New York Public Library - Main Branch"
+    Objective: "Find the stone lions (Patience and Fortitude) and venture inside."
+    Title: "The People’s Citadel"
+    Lore: "Guarded by silent lions, this archive holds the whispers of civilizations."
+    
+  Quest: Empire State Building:
+    Location: "Empire State Building"
+    Objective: "Reach the observation deck or stand at its base and look up."
+    Title: "Skyrise Trial"
+    Lore: "Ascend the tower of dreams and face the wind that crowns kings and monsters alike."
+
+  Quest: One World Trade:
+    Location: "One World Trade Center & 9/11 Memorial"
+    Objective: "Reflect at the twin fountains and look upward to the tower."
+    Title: "Beacon of Echoes"
+    Lore: "Where loss met unity, a new tower pierces the clouds to honor the fallen."
+
+  For each mission, follow this exact format: 
+
+  Quest: [Landmark Name]:
+    Location: [Short location name]
+    Objective: [Clear, feasible, and simple action the user must complete there] 
+    Title: [Creative RPG-style quest title]
+    Lore: [One to two sentence fantasy-style lore, poetic or mysterious in tone]
+    *START NEW QUEST*
+  The quests should mix well-known locations (like monuments, parks, or buildings) with more unique or local spots (like cafes, cemeteries, or small businesses). Keep the descriptions concise but imaginative. Do not add anything before or after the specified format.
+  `;
+
+      const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`;
+
+      const body = JSON.stringify({
+          contents: [
+              {
+                  parts: [
+                      { text: prompt }
+                  ]
+              }
+          ]
+      });
+
+      try {
+          const response = await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: body
+          });
+
+          const data = await response.json();
+          console.log("Gemini raw response:", data);
+
+          if (!data || !data.candidates || data.candidates.length === 0) {
+              throw new Error(`Gemini API returned no content: ${data.error ?? 'Unknown error'}`);
+          }
+
+          const content = data.candidates[0].content;
+          if (!content || !content.parts || content.parts.length === 0) {
+              throw new Error("Gemini content format is unexpected.");
+          }
+
+          return content.parts[0].text ?? "No sidequests generated.";
+      } catch (error) {
+          console.error("Error generating sidequests:", error);
+          return "No sidequests generated.";
+      }
+  }
+    let quests = {side: []};
+    function getLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(getLocations);
+      } else { 
+        x.innerHTML = "Geolocation is not supported by this browser.";
+      }
+    }
+    let places = [];
+    async function getLocations(position) {
+      console.log(position);
+      let loc= {latitude: position.coords.latitude, longitude: position.coords.longitude};
+      console.log('loc: '+loc.latitude+", lat: "+loc.longitude);
+      locs = await getNearbyPlaces(loc);
+      console.log('locs: '+locs);
+      let preformatQuests = await generateSidequests(locs);
+      console.log('quests: '+preformatQuests);
+        if (!preformatQuests) {
+          document.getElementById("questContainer").innerText = "No quests found for this city.";
+          return;
+        }
+        preformatQuests.split("*START NEW QUEST*").forEach(q => {
+          linedQ = q.split(":");
+          console.log("linedq: "+linedQ[5]);
+          quests["side"].push({name: linedQ[5], description: q, steps: null})
+        })
+        const stored = localStorage.getItem("completed_" + city);
+        completed = stored ? JSON.parse(stored) : [];
+
+        displayQuests();
+    }
+    getLocation();
     let completed = [];
     let city = localStorage.getItem("currentLocation");
 
@@ -63,11 +226,11 @@
       .then(res => res.json())
       .then(data => {
         quests = data[city];
+        console.log('QUESTS: '+JSON.stringify(quests));
         if (!quests) {
           document.getElementById("questContainer").innerText = "No quests found for this city.";
           return;
         }
-
         const stored = localStorage.getItem("completed_" + city);
         completed = stored ? JSON.parse(stored) : [];
 
@@ -86,7 +249,7 @@
       const substepData = JSON.parse(localStorage.getItem("substeps_" + city) || "{}");
       const completedSet = new Set(completed);
 
-      // === MAIN QUESTS ===
+      /*// === MAIN QUESTS ===
       const mainToShow = cityQuests.main.filter((_, i) => !completedSet.has(`main-${i}`));
       if (mainToShow.length > 0) {
         const mainHeader = document.createElement("h2");
@@ -97,7 +260,7 @@
           const index = `main-${i}`;
           renderQuest(container, q, index, substepData);
         });
-      }
+      }*/
 
       // === SIDE QUESTS ===
       const uncompletedSide = cityQuests.side
@@ -154,6 +317,7 @@
         : "";
 
       const div = document.createElement("div");
+      console.log(q.name);
       div.innerHTML = `
         <p><strong>${q.name}</strong></p>
         <button onclick="completeQuest('${index}')" ${steps.length ? "disabled" : ""}>Complete</button>
@@ -226,8 +390,9 @@
         alert(`🎉 Level up! You're now level ${newLevel}!\n✅ ${quest.name} completed!`);
       } else {
         alert(`✅ ${quest.name} completed! +50 XP`);
-      }
 
+      }
+      window.location.reload();
       displayQuests();
     }
 
@@ -251,6 +416,7 @@
       updateXPBar();
       displayQuests();
       alert("XP and quest progress reset!");
+      window.location.reload();
     }
 
     window.onload = updateXPBar;
