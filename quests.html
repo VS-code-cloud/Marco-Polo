@@ -167,34 +167,36 @@
       container.appendChild(div);
     }
 
-    function toggleSubstep(index, stepIndex) {
-      const key = "substeps_" + city;
-      const data = JSON.parse(localStorage.getItem(key) || "{}");
+   function toggleSubstep(index, stepIndex) {
+  const key = "substeps_" + city;
+  const data = JSON.parse(localStorage.getItem(key) || "{}");
 
-      if (!data[index]) {
-        data[index] = [];
-      }
+  const quest =
+    index.startsWith("main")
+      ? quests.main[parseInt(index.split("-")[1])]
+      : quests.side[parseInt(index.split("-")[1])];
 
-      data[index][stepIndex] = !data[index][stepIndex];
-      localStorage.setItem(key, JSON.stringify(data));
+  const stepsLength = quest.steps ? quest.steps.length : 0;
+  data[index] = data[index] || Array(stepsLength).fill(false);
+  for (let i = 0; i < stepsLength; i++) {
+    if (typeof data[index][i] !== "boolean") data[index][i] = false;
+  }
 
-      // Save open tabs before re-render
-      const openDescs = Array.from(document.querySelectorAll('[id^="desc-"]'))
-        .filter(el => el.style.display !== "none")
-        .map(el => el.id);
-      localStorage.setItem("openDescs", JSON.stringify(openDescs));
+  data[index][stepIndex] = !data[index][stepIndex];
+  localStorage.setItem(key, JSON.stringify(data));
 
-      const quest =
-        index.startsWith("main")
-          ? quests.main[parseInt(index.split("-")[1])]
-          : quests.side[parseInt(index.split("-")[1])];
+  // Save open tabs before re-render
+  const openDescs = Array.from(document.querySelectorAll('[id^="desc-"]'))
+    .filter(el => el.style.display !== "none")
+    .map(el => el.id);
+  localStorage.setItem("openDescs", JSON.stringify(openDescs));
 
-      if (quest.steps && data[index].filter(Boolean).length === quest.steps.length) {
-        completeQuest(index);
-      } else {
-        displayQuests();
-      }
-    }
+  if (data[index].filter(Boolean).length === stepsLength) {
+    completeQuest(index);
+  } else {
+    displayQuests();
+  }
+}
 
     function toggleDescription(id) {
       const desc = document.getElementById(id);
