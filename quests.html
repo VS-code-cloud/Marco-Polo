@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Your Quests – MarcoPolo</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>Your Quests - MarcoPolo</h1>
+  <p id="cityName"></p>
+
+  <label for="citySwitch">🌎 Switch City:</label>
+  <select id="citySwitch" onchange="switchToCity(this.value)"></select>
+
+  <a href="spin.html">🎡 Spin the Wheel</a>
+
+
+  <div id="questContainer"></div>
+
+  <!-- XP Display -->
+  <div id="xpSection" style="margin: 20px; text-align: center;">
+    <h3>Level: <span id="level">0</span></h3>
+    <div style="background-color: #ddd; width: 300px; height: 20px; border-radius: 10px; overflow: hidden; margin: 0 auto;">
+      <div id="xpBar" style="width: 0%; height: 100%; background-color: #2ecc71;"></div>
+    </div>
+  </div>
+
+  <!-- Reset Button -->
+  <button onclick="resetXP()">Reset XP</button>
+
+  <script>
+    let quests = {};
+    let completed = [];
+    let city = localStorage.getItem("currentLocation");
+
+    if (!city) {
+      window.location.href = "index.html";
+    }
+
+    document.getElementById("cityName").innerText = "City: " + city;
+
+    // Load visited cities into dropdown
+    const visited = JSON.parse(localStorage.getItem("visitedCities") || "[]");
+    const select = document.getElementById("citySwitch");
+    visited.forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c;
+      opt.textContent = c;
+      if (c === city) opt.selected = true;
+      select.appendChild(opt);
+    });
+
+    function switchToCity(newCity) {
+      localStorage.setItem("currentLocation", newCity);
+      location.reload(); // Re-fetch quests for the selected city
+    }
+
+    fetch("data/quests.json")
+      .then(res => res.json())
+      .then(data => {
+        quests = data[city];
+        if (!quests) {
+          document.getElementById("questContainer").innerText = "No quests found for this city.";
+          return;
+        }
+
+        const stored = localStorage.getItem("completed_" + city);
+        completed = stored ? JSON.parse(stored) : [];
+
+        displayQuests();
+      });
+
+    function displayQuests() {
+      const container = document.getElementById("questContainer");
+      container.innerHTML = "";
+
+      const cityQuests = {
+        main: quests.main || [],
+        side: quests.side || []
+      };
+
+      const substepData = JSON.parse(localStorage.getItem("substeps_" + city) || "{}");
+      const completedSet = new Set(completed);
+
+      // === MAIN QUESTS ===
+      const mainToShow = cityQuests.main.filter((_, i) => !completedSet.has(`main-${i}`));
+      if (mainToShow.length > 0) {
+        const mainHeader = document.createElement("h2");
+        mainHeader.innerText = "📘 Main Quests";
+        container.appendChild(mainHeader);
+
+        mainToShow.forEach((q, i) => {
+          const index = `main-${i}`;
+          renderQuest(container, q, index, substepData);
+        });
+      }
+
+      // === SIDE QUESTS ===
+      const uncompletedSide = cityQuests.side
+        .map((q, i) => ({ index: `side-${i}`, ...q }))
+        .filter(q => !completedSet.has(q.index));
+
+      if (uncompletedSide.length > 0) {
+        const sideHeader = document.createElement("h2");
+        sideHeader.innerText = "📙 Side Quests";
+        container.appendChild(sideHeader);
+
+        let order = JSON.parse(localStorage.getItem("sideOrder_" + city));
+        if (!order) {
+          order = uncompletedSide.map(q => q.index).sort(() => Math.random() - 0.5);
+          localStorage.setItem("sideOrder_" + city, JSON.stringify(order));
+        }
+
+        const next3 = order
+          .filter(id => !completedSet.has(id))
+          .slice(0, 3)
+          .map(id => {
+            const idx = parseInt(id.split("-")[1]);
+            return { index: id, ...cityQuests.side[idx] };
+          });
+
+        next3.forEach(q => {
+          renderQuest(container, q, q.index, substepData);
+        });
+      } else {
+        const sideDone = document.createElement("p");
+        sideDone.innerText = "✅ All side quests completed!";
+        container.appendChild(sideDone);
+      }
+
+      // Re-open previously opened Info tabs
+      const openDescs = JSON.parse(localStorage.getItem("openDescs") || "[]");
+      openDescs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = "block";
+      });
+      localStorage.removeItem("openDescs");
+    }
+
+    function renderQuest(container, q, index, substepData) {
+      const descId = `desc-${index}`;
+      const steps = q.steps || [];
+      const progress = substepData[index] || Array(steps.length).fill(false);
+
+      const stepsHTML = steps.length
+        ? `<ol>${steps.map((step, i) => {
+            const checked = progress[i] ? "checked" : "";
+            return `<li><label><input type="checkbox" onchange="toggleSubstep('${index}', ${i})" ${checked}> ${step}</label></li>`;
+          }).join("")}</ol>`
+        : "";
+
+      const div = document.createElement("div");
+      div.innerHTML = `
+        <p><strong>${q.name}</strong></p>
+        <button onclick="completeQuest('${index}')" ${steps.length ? "disabled" : ""}>Complete</button>
+        <button onclick="toggleDescription('${descId}')">Info</button>
+        <div id="${descId}" style="display: none; font-size: 0.9em; margin-top: 5px; color: #555;">
+          <p>${q.description}</p>
+          ${stepsHTML}
+        </div>
+      `;
+
+      container.appendChild(div);
+    }
+
+    function toggleSubstep(index, stepIndex) {
+      const key = "substeps_" + city;
+      const data = JSON.parse(localStorage.getItem(key) || "{}");
+
+      if (!data[index]) {
+        data[index] = [];
+      }
+
+      data[index][stepIndex] = !data[index][stepIndex];
+      localStorage.setItem(key, JSON.stringify(data));
+
+      // Save open tabs before re-render
+      const openDescs = Array.from(document.querySelectorAll('[id^="desc-"]'))
+        .filter(el => el.style.display !== "none")
+        .map(el => el.id);
+      localStorage.setItem("openDescs", JSON.stringify(openDescs));
+
+      const quest =
+        index.startsWith("main")
+          ? quests.main[parseInt(index.split("-")[1])]
+          : quests.side[parseInt(index.split("-")[1])];
+
+      if (quest.steps && data[index].filter(Boolean).length === quest.steps.length) {
+        completeQuest(index);
+      } else {
+        displayQuests();
+      }
+    }
+
+    function toggleDescription(id) {
+      const desc = document.getElementById(id);
+      desc.style.display = desc.style.display === "none" ? "block" : "none";
+    }
+
+    function completeQuest(index) {
+      if (completed.includes(index)) return;
+
+      const quest =
+        index.startsWith("main")
+          ? quests.main[parseInt(index.split("-")[1])]
+          : quests.side[parseInt(index.split("-")[1])];
+
+      let xp = parseInt(localStorage.getItem("xp") || "0");
+      const prevLevel = Math.floor(xp / 200);
+      xp += 50;
+      localStorage.setItem("xp", xp);
+
+      completed.push(index);
+      localStorage.setItem("completed_" + city, JSON.stringify(completed));
+
+      updateXPBar();
+
+      const newLevel = Math.floor(xp / 200);
+      if (newLevel > prevLevel) {
+        alert(`🎉 Level up! You're now level ${newLevel}!\n✅ ${quest.name} completed!`);
+      } else {
+        alert(`✅ ${quest.name} completed! +50 XP`);
+      }
+
+      displayQuests();
+    }
+
+    function updateXPBar() {
+      const xp = parseInt(localStorage.getItem("xp") || "0");
+      const level = Math.floor(xp / 200);
+      const progress = xp % 200;
+      document.getElementById("level").innerText = level;
+      document.getElementById("xpBar").style.width = `${(progress / 200) * 100}%`;
+    }
+
+    function resetXP() {
+      localStorage.setItem("xp", 0);
+      localStorage.setItem("completed_" + city, "[]");
+      localStorage.removeItem("questOrder_" + city);
+      localStorage.removeItem("sideOrder_" + city);
+      localStorage.removeItem("substeps_" + city);
+      updateXPBar();
+      displayQuests();
+      alert("XP and quest progress reset!");
+    }
+
+    window.onload = updateXPBar;
+  </script>
+</body>
+</html>
