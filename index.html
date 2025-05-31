@@ -1,26 +1,87 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>Page Title</title>
+  <meta charset="UTF-8">
+  <title>MarcoPolo</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 2.5em;
+    }
+    #status {
+      margin-top: 20px;
+      font-size: 1.2em;
+    }
+    button {
+      margin-top: 30px;
+      font-size: 1.1em;
+      padding: 12px 24px;
+    }
+  </style>
 </head>
-    <body>
-        <p>Default code has been loaded into the Editor.</p>
-        <div id="demo"></div>
-        
-    </body>
-    <script>
-        const x = document.getElementById("demo");
-        function getLocation() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(showPosition);
-        } else {
-            x.innerHTML = "Geolocation is not supported by this browser.";
-        }
-        }
+<body>
+  <h1>🌍 Welcome to MarcoPolo</h1>
+  <p>Detecting your location to begin your adventure...</p>
+  <div id="status">⏳ Attempting to get GPS location...</div>
 
-        function showPosition(position) {
-        x.innerHTML = "Latitude: " + position.coords.latitude +
-        "<br>Longitude: " + position.coords.longitude;
-        }
-        getLocation()
-</script>
+  <button id="enterBtn" onclick="goToQuests()" style="display:none;">🚀 Enter</button>
+  <button onclick="retry()">🔄 Retry Location Detection</button>
+
+  <script>
+    navigator.geolocation.getCurrentPosition(success, error);
+
+    function success(position) {
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
+
+      // === Use mock location logic for now ===
+      let city = getMockCity(lat, lon);
+      
+localStorage.setItem("currentLocation", city);
+
+// Update visitedCities
+let visited = JSON.parse(localStorage.getItem("visitedCities") || "[]");
+if (!visited.includes(city)) {
+  visited.push(city);
+  localStorage.setItem("visitedCities", JSON.stringify(visited));
+}
+
+
+      document.getElementById("status").innerText = `📍 Location detected: ${city}`;
+      document.getElementById("enterBtn").style.display = "inline-block";
+    }
+
+    function error() {
+      document.getElementById("status").innerText = "⚠️ Could not detect location. Please enable GPS.";
+    }
+
+    function retry() {
+      document.getElementById("status").innerText = "🔄 Retrying GPS...";
+      document.getElementById("enterBtn").style.display = "none";
+      navigator.geolocation.getCurrentPosition(success, error);
+    }
+
+    function goToQuests() {
+      window.location.href = "quests.html";
+    }
+
+    function getMockCity(lat, lon) {
+      if (lat > 40.3 && lat < 40.4 && lon > -74.7 && lon < -74.6) {
+        return "Princeton";
+      } else if (lat > 40.7 && lat < 40.9 && lon > -74 && lon < -73.8) {
+        return "New York";
+      } else if (lat > 34 && lat < 34.2 && lon > -118.5 && lon < -118.2) {
+        return "Los Angeles";
+      } else if (lat > 42.3 && lat < 42.4 && lon > -71.2 && lon < -71) {
+        return "Boston";
+      } else {
+        return "Princeton"; // fallback city
+      }
+    }
+  </script>
+</body>
 </html>
