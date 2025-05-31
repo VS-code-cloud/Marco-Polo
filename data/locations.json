@@ -1,0 +1,8 @@
+[
+  { "city": "Princeton", "lat": 40.3431, "lon": -74.6551 },
+  { "city": "New York", "lat": 40.7128, "lon": -74.0060 },
+  { "city": "Los Angeles", "lat": 34.0522, "lon": -118.2437 },
+  { "city": "Chicago", "lat": 41.8781, "lon": -87.6298 },
+  { "city": "San Francisco", "lat": 37.7749, "lon": -122.4194 },
+  { "city": "Boston", "lat": 42.3601, "lon": -71.0589 }
+]
