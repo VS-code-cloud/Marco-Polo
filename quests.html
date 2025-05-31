@@ -222,7 +222,7 @@
       location.reload(); // Re-fetch quests for the selected city
     }
 
-    fetch("data/quests.json")
+    /*fetch("data/quests.json")
       .then(res => res.json())
       .then(data => {
         quests = data[city];
@@ -235,7 +235,7 @@
         completed = stored ? JSON.parse(stored) : [];
 
         displayQuests();
-      });
+      });*/
 
     function displayQuests() {
       const container = document.getElementById("questContainer");
@@ -280,14 +280,16 @@
 
         const next3 = order
           .filter(id => !completedSet.has(id))
-          .slice(0, 3)
           .map(id => {
             const idx = parseInt(id.split("-")[1]);
             return { index: id, ...cityQuests.side[idx] };
           });
 
         next3.forEach(q => {
-          renderQuest(container, q, q.index, substepData);
+          if (q.name!=null) {
+            renderQuest(container, q, q.index, substepData);
+          }
+          
         });
       } else {
         const sideDone = document.createElement("p");
@@ -393,7 +395,6 @@
 
       }
       window.location.reload();
-      displayQuests();
     }
 
     function updateXPBar() {
